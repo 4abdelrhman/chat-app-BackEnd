@@ -9,15 +9,15 @@ export const signUp = async (req, res) => {
     if (password.length < 8) {
       return res
         .status(400)
-        .json({ massage: 'Password must be at least 8 character.' });
+        .json({ message: 'Password must be at least 8 character.' });
     }
 
     if (!fullName || !email || !password) {
-      return res.status(400).json({ massage: 'All fields are required .' });
+      return res.status(400).json({ message: 'All fields are required .' });
     }
     const user = await User.findOne({ email });
     if (user) {
-      return res.status(400).json({ massage: 'Email already exists.' });
+      return res.status(400).json({ message: 'Email already exists.' });
     }
 
     const salt = await bcrypt.genSalt(10);
@@ -30,19 +30,22 @@ export const signUp = async (req, res) => {
     });
 
     if (newUser) {
-      generateToken(newUser._id, res);
       await newUser.save();
+      generateToken(newUser._id, res);
       res.status(201).json({
         _id: newUser._id,
         email: newUser.email,
         profilePic: newUser.profilePic,
       });
     } else {
-      return res.status(400).json({ massage: 'invalid user data.' });
+      return res.status(400).json({ message: 'invalid user data.' });
     }
   } catch (error) {
     console.log('Error in sign up controller', error.message);
-    res.status(500).json({ message: 'internal Server Error' });
+    res.status(500).json({
+      success: false,
+      message: 'Internal Server Error.',
+    });
   }
 };
 
@@ -68,24 +71,30 @@ export const logIn = async (req, res) => {
     });
   } catch (error) {
     console.log('Error in login controller', error.message);
-    res.status(500).json({ message: 'Internal Server Error.' });
+    res.status(500).json({
+      success: false,
+      message: 'Internal Server Error.',
+    });
   }
 };
 
 export const logOut = (req, res) => {
   try {
     res.cookie('jwt', '', { maxAge: 0 });
-    res.status(200).json({ massage: 'Logged out successfully.' });
+    res.status(200).json({ message: 'Logged out successfully.' });
   } catch (error) {
     console.log('Error in logout controller', error.message);
-    res.status(500).json({ massage: 'Internal Server Error.' });
+    res.status(500).json({
+      success: false,
+      message: 'Internal Server Error.',
+    });
   }
 };
 
 export const updateProfile = async (req, res) => {
   try {
     const { profilePic } = req.body;
-    const uesrId = req.user._id;
+    const userId = req.user._id;
 
     if (!profilePic) {
       return res.status(400).json({ message: 'Profile Picture required.' });
@@ -94,7 +103,7 @@ export const updateProfile = async (req, res) => {
     const uploadRes = await cloudinary.uploader.upload(profilePic);
 
     const updatedUser = await User.findByIdAndUpdate(
-      uesrId,
+      userId,
       {
         profilePic: uploadRes.secure_url,
       },
@@ -104,6 +113,9 @@ export const updateProfile = async (req, res) => {
     res.status(200).json(updatedUser);
   } catch (error) {
     console.log('Error in updateProfile controller', error.message);
-    res.status(500).json({ massage: 'Internal Server Error.' });
+    res.status(500).json({
+      success: false,
+      message: 'Internal Server Error.',
+    });
   }
 };
