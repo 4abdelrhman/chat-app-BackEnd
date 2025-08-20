@@ -1,3 +1,4 @@
+# Chat App Backend
 This repository contains the backend service for a real-time chat application. It is built with Node.js, Express, MongoDB, and Socket.IO, providing a robust foundation for user authentication, messaging, and real-time communication.
 
 ## Features
